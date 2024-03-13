@@ -30,10 +30,32 @@ public:
 	void LeftRight(float Value);
 	void Yaw(float Value);
 
+	void Attack();
+
+	UFUNCTION()
+	void OnAttackMontageEnded(UAnimMontage* Montage, bool Interrupted);
+
+
 private:
 	UPROPERTY(VisibleAnywhere)
 	class USpringArmComponent* SpringArm;
 
 	UPROPERTY(VisibleAnywhere)
 	class UCameraComponent* Camera;
+
+	UPROPERTY(VisibleAnywhere, Category=Pawn)
+	bool IsAttacking = false;
+
+	UPROPERTY() // 붙여줘야 알아서 메모리 관리가 된다.
+	class UMyAnimInstance* AnimInstance;
+
+	UPROPERTY()
+	uint32 AttackIndex = 0;
+
+public:
+	UPROPERTY()
+	float UpDownValue = 0;
+
+	UPROPERTY()
+	float LeftRightValue = 0;
 };

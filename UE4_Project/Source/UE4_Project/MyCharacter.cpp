@@ -5,6 +5,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "MyAnimInstance.h"
 
 // Sets default values
 AMyCharacter::AMyCharacter()
@@ -34,6 +35,8 @@ void AMyCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	AnimInstance = Cast<UMyAnimInstance>(GetMesh()->GetAnimInstance());
+	AnimInstance->OnMontageEnded.AddDynamic(this, &AMyCharacter::OnAttackMontageEnded); // 끝나면 해당 함수 호출
 }
 
 // Called every frame
@@ -48,6 +51,9 @@ void AMyCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
+	PlayerInputComponent->BindAction(TEXT("Jump"), EInputEvent::IE_Pressed, this, &AMyCharacter::Jump);
+	PlayerInputComponent->BindAction(TEXT("Attack"), EInputEvent::IE_Pressed, this, &AMyCharacter::Attack);
+
 	PlayerInputComponent->BindAxis(TEXT("UpDown"), this, &AMyCharacter::UpDown);
 	PlayerInputComponent->BindAxis(TEXT("LeftRight"), this, &AMyCharacter::LeftRight);
 	PlayerInputComponent->BindAxis(TEXT("Yaw"), this, &AMyCharacter::Yaw);
@@ -56,16 +62,40 @@ void AMyCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 void AMyCharacter::UpDown(float Value)
 {
 	//UE_LOG(LogTemp, Warning, TEXT("UpDown %f"), Value);
+	UpDownValue = Value;
 	AddMovementInput(GetActorForwardVector(), Value);
 }
 
 void AMyCharacter::LeftRight(float Value)
 {
 	//UE_LOG(LogTemp, Warning, TEXT("LeftRight %f"), Value);
+	LeftRightValue = Value;
 	AddMovementInput(GetActorRightVector(), Value);
 }
 
 void AMyCharacter::Yaw(float Value)
 {
 	AddControllerYawInput(Value); // 콘트롤러에다가 인풋 넣은 것이다. (옵션 활성화)
+}
+
+void AMyCharacter::Attack()
+{
+	if (IsAttacking)
+		return;
+
+	//auto AnimInstance = Cast<UMyAnimInstance>(GetMesh()->GetAnimInstance());
+	//if (AnimInstance)
+	//{
+		AnimInstance->PlayAttackMontage();
+	//}
+
+	//AnimInstance->JumpToSection(AttackIndex);
+	//AttackIndex = (AttackIndex + 1) % 3;
+
+	IsAttacking = true;
+}
+
+void AMyCharacter::OnAttackMontageEnded(UAnimMontage* Montage, bool Interrupted)
+{
+	IsAttacking = false;
 }
